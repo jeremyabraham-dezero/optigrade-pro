@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade OMR Sheet</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center transition-colors duration-300 bg-gray-100 dark:bg-gray-900">
+
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <h1 class="text-4xl md:text-5xl font-bold text-gray-800 dark:text-gray-200 mb-2">OMR Sheet Grader</h1>
+        <p class="text-lg md:text-xl text-gray-600 dark:text-gray-400">Grade your OMR sheets quickly and accurately!</p>
+    </div>
+
+    <!-- Upload Card -->
+    <div id="uploadCard" class="upload-card bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4 text-center">Upload and Grade</h2>
+        <form id="gradeForm" enctype="multipart/form-data" class="space-y-4">
+            <!-- OMR Sheet Uploads -->
+            <div id="omrSheetsSection"></div>
+
+            <div>
+                <label for="numQuestions" class="block text-gray-700 dark:text-gray-300 mb-1">Number of Questions</label>
+                <input type="number" id="numQuestions" name="numQuestions" min="5" max="50" required class="w-full px-4 py-2 border rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div>
+                <label for="numOptions" class="block text-gray-700 dark:text-gray-300 mb-1">Options per Question</label>
+                <input type="number" id="numOptions" name="numOptions" min="2" max="6" required class="w-full px-4 py-2 border rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div>
+                <label for="bubbleSize" class="block text-gray-700 dark:text-gray-300 mb-1">Bubble Size</label>
+                <select id="bubbleSize" name="bubbleSize" required class="w-full px-4 py-2 border rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="small">Small</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="large">Large</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="bubbleShape" class="block text-gray-700 dark:text-gray-300 mb-1">Bubble Shape</label>
+                <select id="bubbleShape" name="bubbleShape" required class="w-full px-4 py-2 border rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="circle" selected>Circle</option>
+                    <option value="square">Square</option>
+                </select>
+            </div>
+
+            <button type="button" id="proceedButton" class="w-full px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow-md hover:from-blue-600 hover:to-blue-700 transition-colors duration-200">Proceed to Enter Answers</button>
+        </form>
+    </div>
+
+    <!-- Answers Card -->
+    <div id="answersCard" class="answers-card hidden bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4 text-center">Enter Correct Answer</h2>
+        <form id="answersForm" class="space-y-4">
+            <div id="answersSection"></div>
+
+            <div class="flex justify-between">
+                <button type="button" id="backButton" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg shadow-md hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors duration-200">Back</button>
+                <button type="submit" id="nextButton" class="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg shadow-md hover:from-green-600 hover:to-green-700 transition-colors duration-200">Next</button>
+                <button type="button" id="cancelButton" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg shadow-md hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors duration-200">Cancel</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+
+        // Get query parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const numSheets = parseInt(urlParams.get('sheets')) || 1;
+        const sameKey = urlParams.get('sameKey') === 'yes';
+
+        // Form elements
+        const gradeForm = document.getElementById('gradeForm');
+        const answersForm = document.getElementById('answersForm');
+        const uploadCard = document.getElementById('uploadCard');
+        const answersCard = document.getElementById('answersCard');
+        const proceedButton = document.getElementById('proceedButton');
+        const backButton = document.getElementById('backButton');
+        const nextButton = document.getElementById('nextButton');
+        const cancelButton = document.getElementById('cancelButton');
+        const numQuestionsInput = document.getElementById('numQuestions');
+        const numOptionsInput = document.getElementById('numOptions');
+        const omrSheetsSection = document.getElementById('omrSheetsSection');
+        const answersSection = document.getElementById('answersSection');
+
+        // Generate OMR sheet upload inputs
+        function generateOmrSheetInputs() {
+            let html = '';
+            for (let i = 1; i <= numSheets; i++) {
+                html += `
+                    <div>
+                        <label for="omrSheet${i}" class="block text-gray-700 dark:text-gray-300 mb-1">Upload OMR Sheet ${i} (PNG/JPEG)</label>
+                        <input type="file" id="omrSheet${i}" name="omrSheet" accept="image/*" ${i === 1 ? 'required' : ''} class="w-full px-4 py-2 border rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                `;
+            }
+            omrSheetsSection.innerHTML = html;
+        }
+
+        // Generate answer inputs
+        function generateAnswerInputs() {
+            const numQuestions = parseInt(numQuestionsInput.value) || 0;
+            const numOptions = parseInt(numOptionsInput.value) || 0;
+
+            if (numQuestions < 5 || numQuestions > 50 || numOptions < 2 || numOptions > 6) {
+                answersSection.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            if (sameKey) {
+                for (let i = 1; i <= numQuestions; i++) {
+                    html += `
+                        <div>
+                            <label for="answer${i}" class="block text-gray-700 dark:text-gray-300 mb-1">Question ${i}</label>
+                            <select id="answer${i}" name="answer${i}" required class="w-full px-4 py-2 border rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500">
+                                <option value="" disabled selected>Select an answer</option>
+                                ${Array.from({length: numOptions}, (_, j) => `
+                                    <option value="${j+1}">${String.fromCharCode(65 + j)}</option>
+                                `).join('')}
+                            </select>
+                        </div>
+                    `;
+                }
+            } else {
+                for (let s = 1; s <= numSheets; s++) {
+                    html += `<h3 class="text-lg font-medium text-gray-800 dark:text-gray-200 mt-4">Sheet ${s}</h3>`;
+                    for (let i = 1; i <= numQuestions; i++) {
+                        html += `
+                            <div>
+                                <label for="answer${s}_${i}" class="block text-gray-700 dark:text-gray-300 mb-1">Question ${i}</label>
+                                <select id="answer${s}_${i}" name="answer${s}_${i}" required class="w-full px-4 py-2 border rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500">
+                                    <option value="" disabled selected>Select an answer</option>
+                                    ${Array.from({length: numOptions}, (_, j) => `
+                                        <option value="${j+1}">${String.fromCharCode(65 + j)}</option>
+                                    `).join('')}
+                                </select>
+                            </div>
+                        `;
+                    }
+                }
+            }
+            answersSection.innerHTML = html;
+        }
+
+        // Initialize the form
+        generateOmrSheetInputs();
+        numQuestionsInput.addEventListener('input', () => {
+            if (answersCard.classList.contains('hidden')) return;
+            generateAnswerInputs();
+        });
+        numOptionsInput.addEventListener('input', () => {
+            if (answersCard.classList.contains('hidden')) return;
+            generateAnswerInputs();
+        });
+
+        // Navigation between cards
+        proceedButton.addEventListener('click', () => {
+            if (!gradeForm.checkValidity()) {
+                gradeForm.reportValidity();
+                return;
+            }
+            uploadCard.classList.add('hidden');
+            answersCard.classList.remove('hidden');
+            generateAnswerInputs();
+        });
+
+        backButton.addEventListener('click', () => {
+            answersCard.classList.add('hidden');
+            uploadCard.classList.remove('hidden');
+        });
+
+        cancelButton.addEventListener('click', () => {
+            window.location.href = '/';
+        });
+
+        // Form submission
+        answersForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            if (!answersForm.checkValidity()) {
+                answersForm.reportValidity();
+                return;
+            }
+
+            // Combine data from both forms
+            const formData = new FormData(gradeForm);
+            formData.append('numSheets', numSheets);
+            formData.append('sameKey', sameKey ? 'yes' : 'no');
+
+            // Append answers from answersForm
+            const answersFormData = new FormData(answersForm);
+            for (let [key, value] of answersFormData.entries()) {
+                formData.append(key, value);
+            }
+
+            fetch('/grade', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(html => {
+                document.open();
+                document.write(html);
+                document.close();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while grading the OMR sheets.');
+            });
+        });
+    </script>
+</body>
+</html>

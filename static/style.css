@@ -1,0 +1,259 @@
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: url('https://images.shiksha.com/mediadata/images/articles/1614581851phpkWsCS2.jpeg') no-repeat center center fixed;
+    background-size: cover;
+    position: relative;
+    margin: 0;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: -1;
+}
+
+body.dark {
+    background-color: #1a1a1a;
+}
+
+body.dark::before {
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.content-wrapper {
+    border-radius: 15px;
+    padding: 20px;
+}
+
+.bubble-header {
+    background: linear-gradient(45deg, #808080, #333333);
+    border-radius: 50px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 350px;
+    height: 150px;
+    margin: 20px auto 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 2;
+    position: relative;
+    animation: fadeIn 1s ease-in;
+}
+
+body.dark .bubble-header {
+    background: linear-gradient(45deg, #1e3a8a, #000);
+}
+
+.bubble-header h1 {
+    font-size: 2rem;
+    margin: 0;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.bubble-header p.lead {
+    font-size: 1.2rem;
+    margin: 5px 0 0;
+    color: #e0e0e0;
+}
+
+.card {
+    border: none;
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.8);
+    transition: transform 0.2s;
+}
+
+body.dark .card {
+    background: rgba(45, 45, 45, 0.8);
+    color: #fff;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.form-control {
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    background: rgba(255, 255, 255, 0.9);
+    transition: border-color 0.2s;
+}
+
+body.dark .form-control {
+    background: rgba(51, 51, 51, 0.9);
+    color: #fff;
+    border-color: #555;
+}
+
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+}
+
+.btn-primary, .btn-success, .btn-outline-primary {
+    border-radius: 8px;
+    padding: 10px;
+    font-weight: 500;
+}
+
+.btn-primary {
+    background-color: #555555;
+    border-color: #555555;
+}
+
+body.dark .btn-primary {
+    background-color: #1e3a8a;
+    border-color: #1e3a8a;
+}
+
+.btn-primary:hover {
+    background-color: #666666;
+    border-color: #666666;
+}
+
+body.dark .btn-primary:hover {
+    background-color: #15307a;
+    border-color: #15307a;
+}
+
+.btn-primary:disabled {
+    background-color: #999999;
+    border-color: #999999;
+    opacity: 1;
+}
+
+.btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+body.dark .btn-success {
+    background-color: #218838;
+    border-color: #218838;
+}
+
+.star-rating .fa-star {
+    font-size: 1.5rem;
+    color: #dee2e6;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+body.dark .star-rating .fa-star {
+    color: #666;
+}
+
+.star-rating .fa-star.text-warning {
+    color: #ffc107;
+}
+
+.review-item {
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+body.dark .review-item {
+    background: rgba(51, 51, 51, 0.85);
+    color: #fff;
+}
+
+.modal-opaque {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+}
+
+body.dark .modal-opaque {
+    background: rgba(51, 51, 51, 0.95);
+    color: #fff;
+}
+
+.toggle-btn {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1000;
+}
+
+.fade-in {
+    animation: fadeIn 1s ease-in;
+}
+
+.preview-img {
+    max-width: 100%;
+    max-height: 200px;
+    object-fit: contain;
+    margin-top: 1rem;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+body.dark .preview-img {
+    border-color: #555;
+}
+
+.progress-bar {
+    width: 100%;
+    background: #e0e0e0;
+    border-radius: 4px;
+    height: 16px;
+    margin-top: 1rem;
+    overflow: hidden;
+}
+
+body.dark .progress-bar {
+    background: #555;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #555555;
+    transition: width 0.2s ease;
+}
+
+body.dark .progress-fill {
+    background: #1e3a8a;
+}
+
+.landing-btn {
+    font-size: 1.5rem;
+    padding: 20px;
+    transition: transform 0.2s;
+}
+
+.landing-btn:hover {
+    transform: scale(1.05);
+}
+
+@media (max-width: 576px) {
+    .bubble-header {
+        width: 100%;
+        height: 120px;
+    }
+    .bubble-header h1 {
+        font-size: 1.8rem;
+    }
+    .bubble-header p {
+        font-size: 1rem;
+    }
+    .content-wrapper {
+        padding: 15px;
+    }
+    .landing-btn {
+        font-size: 1.2rem;
+        padding: 15px;
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}

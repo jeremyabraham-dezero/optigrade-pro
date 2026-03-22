@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OMR Grading Results</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/static/darkMode.js"></script>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center transition-colors duration-300 bg-gray-100 dark:bg-gray-900">
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <h1 class="text-4xl md:text-5xl font-bold text-gray-800 dark:text-gray-200 mb-2">OMR Grading Results</h1>
+        <p class="text-lg md:text-xl text-gray-600 dark:text-gray-400">View the grading results of your OMR sheets</p>
+    </div>
+
+    <!-- Summary Section -->
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-4xl mb-6">
+        <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Summary</h2>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="text-center">
+                <p class="text-gray-600 dark:text-gray-400">Total Sheets Graded</p>
+                <p class="text-xl font-bold text-gray-800 dark:text-gray-200">{{ results_files | length }}</p>
+            </div>
+            <div class="text-center">
+                <p class="text-gray-600 dark:text-gray-400">Average Score</p>
+                {% if results_files %}
+                    {% set total_score = results_files | sum(attribute='0.score') %}
+                    {% set avg_score = (total_score / (results_files | length)) | round(1) %}
+                    <p class="text-xl font-bold text-gray-800 dark:text-gray-200">{{ avg_score }}</p>
+                {% else %}
+                    <p class="text-xl font-bold text-gray-800 dark:text-gray-200">0</p>
+                {% endif %}
+            </div>
+            <div class="text-center">
+                <p class="text-gray-600 dark:text-gray-400">Highest Score</p>
+                {% if results_files %}
+                    {% set highest_score = results_files | max(attribute='0.score') %}
+                    <p class="text-xl font-bold text-gray-800 dark:text-gray-200">{{ highest_score.0.score }}</p>
+                {% else %}
+                    <p class="text-xl font-bold text-gray-800 dark:text-gray-200">0</p>
+                {% endif %}
+            </div>
+            <div class="text-center">
+                <p class="text-gray-600 dark:text-gray-400">Lowest Score</p>
+                {% if results_files %}
+                    {% set lowest_score = results_files | min(attribute='0.score') %}
+                    <p class="text-xl font-bold text-gray-800 dark:text-gray-200">{{ lowest_score.0.score }}</p>
+                {% else %}
+                    <p class="text-xl font-bold text-gray-800 dark:text-gray-200">0</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Card -->
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-4xl">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="border-b dark:border-gray-600">
+                    <th class="py-3 px-4 text-gray-800 dark:text-gray-200">Roll Number (File Name)</th>
+                    <th class="py-3 px-4 text-gray-800 dark:text-gray-200">Score</th>
+                    <th class="py-3 px-4 text-gray-800 dark:text-gray-200">Details</th>
+                    <th class="py-3 px-4 text-gray-800 dark:text-gray-200">Download</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for result_file in results_files %}
+                    {% set result = result_file[0] %}
+                    {% set file = result_file[1] %}
+                    <tr class="border-b dark:border-gray-600">
+                        <td class="py-3 px-4 text-gray-700 dark:text-gray-300">{{ result.roll_number }}</td>
+                        <td class="py-3 px-4 text-green-600 dark:text-green-400 font-semibold">{{ result.score }} / {{ result.total }}</td>
+                        <td class="py-3 px-4">
+                            <ul class="list-none space-y-1">
+                                {% for detail in result.details %}
+                                    <li data-detail="{{ detail }}"
+                                        class="{% if 'Correct' in detail %}text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900{% elif 'Incorrect' in detail %}text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900{% else %}text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700{% endif %} px-2 py-1 rounded"
+                                        {% if 'Incorrect' in detail %}style="color: #dc2626; background-color: #fee2e2;"{% elif 'Correct' in detail %}style="color: #16a34a; background-color: #d1fae5;"{% else %}style="color: #4b5563; background-color: #f3f4f6;"{% endif %}>
+                                        {{ detail }}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </td>
+                        <td class="py-3 px-4">
+                            {% if file %}
+                                <a href="/download/{{ file }}" class="inline-block px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow-md hover:from-blue-600 hover:to-blue-700 transition-colors duration-200" download>Download Sheet</a>
+                            {% else %}
+                                <span class="text-gray-500 dark:text-gray-400">Not Available</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- User Reviews Section -->
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-4xl mt-6">
+        <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">User Reviews</h2>
+       <form id="reviewForm" class="space-y-4">
+    <div>
+        <label for="username" class="block text-gray-700 dark:text-gray-300 mb-1">Name</label>
+        <input type="text" name="username" id="username" required
+               class="w-full px-4 py-2 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+    </div>
+    
+    <div>
+        <label class="block text-gray-700 dark:text-gray-300 mb-1">Rating</label>
+        <div id="starRating" class="flex space-x-2 text-2xl cursor-pointer text-gray-400">
+            <span data-star="1">★</span>
+            <span data-star="2">★</span>
+            <span data-star="3">★</span>
+            <span data-star="4">★</span>
+            <span data-star="5">★</span>
+        </div>
+        <input type="hidden" id="rating" name="rating" required>
+    </div>
+
+    <div>
+        <label for="review" class="block text-gray-700 dark:text-gray-300 mb-1">Review</label>
+        <textarea name="review" id="review" rows="3" required
+                  class="w-full px-4 py-2 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+    </div>
+
+    <button type="submit"
+            class="px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg shadow-md hover:from-purple-600 hover:to-purple-700 transition-colors duration-200">
+        Submit Review
+    </button>
+</form>
+<div id="reviewSuccess" class="mt-4 hidden text-green-600 dark:text-green-400 font-medium">Thanks for your review!</div>
+
+
+    <!-- Navigation Buttons -->
+    <div class="mt-6 flex space-x-4">
+        <a href="/grade_omr" class="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow-md hover:from-blue-600 hover:to-blue-700 transition-colors duration-200">Grade More Sheets</a>
+        <a href="/" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg shadow-md hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors duration-200">Back to Home</a>
+      {% if results_files %}
+<form action="/export_csv" method="POST">
+    <input type="hidden" name="results" value='{{ results_files | map(attribute=0) | list | tojson | safe }}'>
+    <button type="submit"
+        class="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg shadow-md hover:from-green-600 hover:to-green-700 transition-colors duration-200">
+        Download CSV
+    </button>
+</form>
+{% endif %}
+
+    </div>
+
+<script>
+let selectedRating = 0;
+const stars = document.querySelectorAll("#starRating span");
+
+stars.forEach(star => {
+    star.addEventListener("mouseover", () => {
+        const val = parseInt(star.dataset.star);
+        stars.forEach(s => {
+            s.style.color = parseInt(s.dataset.star) <= val ? "#facc15" : "#9ca3af"; // yellow-400 or gray-400
+        });
+    });
+    star.addEventListener("click", () => {
+        selectedRating = parseInt(star.dataset.star);
+        document.getElementById("rating").value = selectedRating;
+    });
+    star.addEventListener("mouseout", () => {
+        stars.forEach(s => {
+            s.style.color = parseInt(s.dataset.star) <= selectedRating ? "#facc15" : "#9ca3af";
+        });
+    });
+});
+
+document.getElementById("reviewForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+    const name = document.getElementById("username").value.trim();
+    const comment = document.getElementById("review").value.trim();
+    const rating = parseInt(document.getElementById("rating").value);
+    if (!name || !comment || !rating) return;
+
+    const payload = {
+        rating: rating,
+        comment: `${name}: ${comment}`
+    };
+
+    try {
+        const res = await fetch("/reviews", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+            document.getElementById("reviewSuccess").classList.remove("hidden");
+            document.getElementById("reviewForm").reset();
+            selectedRating = 0;
+            stars.forEach(s => s.style.color = "#9ca3af");
+        } else {
+            alert("Error submitting review.");
+        }
+    } catch (err) {
+        alert("Network error while submitting review.");
+    }
+});
+</script>
+
+</body>
+</html>

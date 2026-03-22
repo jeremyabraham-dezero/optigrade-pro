@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OMR Sheet Grader</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .modal-content {
+            border-radius: 15px;
+            padding: 20px;
+        }
+        .modal-header {
+            border-bottom: none;
+        }
+        .modal-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #dc3545; /* Red for emphasis */
+        }
+        .modal-body {
+            font-size: 1.2rem;
+            font-weight: 500;
+            text-align: center;
+        }
+        .modal-footer {
+            border-top: none;
+            justify-content: center;
+        }
+        .btn-got-it {
+            background-color: #28a745;
+            color: white;
+            font-size: 1.1rem;
+            padding: 10px 30px;
+            border-radius: 10px;
+        }
+        .btn-got-it:hover {
+            background-color: #218838;
+        }
+        .review-section {
+            margin-top: 40px;
+        }
+        .review-card {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+        }
+        .review-card.dark {
+            background-color: #333;
+            border-color: #555;
+            color: #fff;
+        }
+        .rating {
+            color: #ffc107;
+            font-size: 1.2rem;
+        }
+        .timestamp {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        .timestamp.dark {
+            color: #bbb;
+        }
+    </style>
+</head>
+<body>
+    <button class="toggle-btn btn btn-secondary" onclick="toggleDarkMode()">Dark Mode</button>
+    <div class="content-wrapper">
+        <div class="bubble-header text-white text-center">
+            <h1 class="fade-in">OptiGrade Pro</h1>
+            <p class="lead fade-in">Grade your OMR sheets with ease!</p>
+        </div>
+
+        <div class="container mt-5">
+            <div class="row justify-content-center">
+                <div class="col-12 text-center">
+                    <a href="/customize_omr" class="btn btn-primary btn-lg m-2">Download Customized OMR</a>
+                    <button class="btn btn-success btn-lg m-2" onclick="showGradingModal()">OMR Grading</button>
+                </div>
+            </div>
+
+            <!-- Reviews Section -->
+            <div class="review-section container mt-5">
+                <h2 class="text-center mb-4">User Reviews</h2>
+                <div id="reviewsList" class="row"></div>
+            </div>
+        </div>
+
+        <!-- Recommendation Modal -->
+        <div class="modal fade" id="recommendationModal" tabindex="-1" aria-labelledby="recommendationModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title" id="recommendationModalLabel">IMPORTANT</h1>
+                    </div>
+                    <div class="modal-body">
+                        We highly recommend you to download the OMR sheet from this website itself, it'll reduce the chance of errors while grading.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-got-it" data-bs-dismiss="modal">Got It</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grading Options Modal -->
+        <div class="modal fade" id="gradingOptionsModal" tabindex="-1" aria-labelledby="gradingOptionsModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title" id="gradingOptionsModalLabel">Grading Options</h1>
+                    </div>
+                    <div class="modal-body">
+                        <form id="gradingOptionsForm">
+                            <div class="mb-3">
+                                <label for="numSheets" class="form-label">How many OMR sheets would you like to grade?</label>
+                                <input type="number" class="form-control" id="numSheets" min="1" max="10" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Is the answer key the same for all sheets?</label>
+                                <div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="sameKey" id="sameKeyYes" value="yes" required>
+                                        <label class="form-check-label" for="sameKeyYes">Yes</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="sameKey" id="sameKeyNo" value="no">
+                                        <label class="form-check-label" for="sameKeyNo">No</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-primary">Proceed</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Dark Mode Toggle
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+            document.querySelector('.toggle-btn').textContent = document.body.classList.contains('dark') ? 'Light Mode' : 'Dark Mode';
+            // Update review cards' dark mode
+            document.querySelectorAll('.review-card, .timestamp').forEach(el => {
+                el.classList.toggle('dark');
+            });
+        }
+
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark');
+            document.querySelector('.toggle-btn').textContent = 'Light Mode';
+        }
+
+        // Show the recommendation modal on page load
+        window.onload = function() {
+            const modal = new bootstrap.Modal(document.getElementById('recommendationModal'));
+            modal.show();
+            fetchReviews();
+        };
+
+        // Show the grading options modal
+        function showGradingModal() {
+            const modal = new bootstrap.Modal(document.getElementById('gradingOptionsModal'));
+            modal.show();
+        }
+
+        // Handle grading options form submission
+        document.getElementById('gradingOptionsForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const numSheets = document.getElementById('numSheets').value;
+            const sameKey = document.querySelector('input[name="sameKey"]:checked').value;
+            if (numSheets < 1 || numSheets > 10) {
+                alert('Please enter a number of sheets between 1 and 10.');
+                return;
+            }
+            window.location.href = `/grade_omr?sheets=${numSheets}&sameKey=${sameKey}`;
+        });
+
+        // Fetch and display reviews
+        async function fetchReviews() {
+            try {
+                const response = await fetch('/reviews');
+                const reviews = await response.json();
+                const reviewsList = document.getElementById('reviewsList');
+                reviewsList.innerHTML = ''; // Clear existing reviews
+
+                if (reviews.length === 0) {
+                    reviewsList.innerHTML = '<p class="text-center">No reviews yet. Be the first to leave a review!</p>';
+                    return;
+                }
+
+                reviews.forEach(review => {
+                    const reviewCard = document.createElement('div');
+                    reviewCard.className = 'col-12 col-md-6 col-lg-4 review-card';
+                    if (document.body.classList.contains('dark')) {
+                        reviewCard.classList.add('dark');
+                    }
+
+                    // Format timestamp
+                    const date = new Date(review.timestamp * 1000);
+                    const formattedDate = date.toLocaleString('en-US', {
+                        year: 'numeric', month: 'long', day: 'numeric',
+                        hour: 'numeric', minute: 'numeric', hour12: true
+                    });
+
+                    // Create star rating
+                    let stars = '';
+                    for (let i = 1; i <= 5; i++) {
+                        stars += i <= review.rating ? '★' : '☆';
+                    }
+
+                    reviewCard.innerHTML = `
+                        <div class="rating">${stars}</div>
+                        <p>${review.comment}</p>
+                        <div class="timestamp ${document.body.classList.contains('dark') ? 'dark' : ''}">${formattedDate}</div>
+                    `;
+                    reviewsList.appendChild(reviewCard);
+                });
+            } catch (error) {
+                console.error('Error fetching reviews:', error);
+                document.getElementById('reviewsList').innerHTML = '<p class="text-center text-danger">Error loading reviews.</p>';
+            }
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'94413c37ff818010',t:'MTc0Nzk2ODUxNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
