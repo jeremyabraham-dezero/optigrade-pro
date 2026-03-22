@@ -21,3 +21,11 @@ Helps teachers and institutions quickly evaluate objective exams without manual 
 - Add user authentication
 - Improve accuracy of image detection
 - Cloud deployment
+
+## Setup Instructions
+1. Clone the repository
+2. Create virtual environment
+3. Install dependencies
+
+```bash
+pip install -r requirements.txt
